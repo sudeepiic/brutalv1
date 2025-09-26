@@ -488,7 +488,8 @@
             </div>
 
             <div class="permission-prompt hidden" id="permissionPrompt">
-                <p>SENSOR ACCESS REQUIRED FOR AUDIO GENERATION</p>
+                <p>⊗ SENSOR ACCESS REQUIRED ⊗</p>
+                <p style="margin-top: 10px; font-size: 0.9rem;">TAP 'ALLOW' TO ENABLE MOTION CONTROLS</p>
             </div>
 
             <div class="sensor-grid" id="sensorGrid">
@@ -605,6 +606,8 @@
                 }
 
                 async requestPermissions() {
+                    let hasPermissions = false;
+
                     if (
                         typeof DeviceOrientationEvent !== "undefined" &&
                         typeof DeviceOrientationEvent.requestPermission ===
@@ -612,16 +615,30 @@
                     ) {
                         this.permissionPrompt.classList.remove("hidden");
                         try {
-                            const permission =
+                            const orientationPermission =
                                 await DeviceOrientationEvent.requestPermission();
-                            if (permission !== "granted") {
-                                throw new Error("Permission denied");
+                            if (orientationPermission !== "granted") {
+                                throw new Error("Orientation permission denied");
                             }
+
+                            const motionPermission =
+                                await DeviceMotionEvent.requestPermission();
+                            if (motionPermission !== "granted") {
+                                throw new Error("Motion permission denied");
+                            }
+
+                            hasPermissions = true;
                         } catch (error) {
+                            console.error("Permission error:", error);
                             this.updateStatus("PERMISSION_DENIED");
+                            this.permissionPrompt.innerHTML = "<p>⊗ PERMISSION DENIED ⊗</p><p style='margin-top: 10px; font-size: 0.9rem;'>REFRESH PAGE AND TRY AGAIN</p>";
                             return;
                         }
                         this.permissionPrompt.classList.add("hidden");
+                    }
+
+                    if (!hasPermissions && !window.DeviceOrientationEvent) {
+                        this.updateStatus("USING_MOUSE_FALLBACK");
                     }
                 }
 

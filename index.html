@@ -560,7 +560,7 @@
                     this.permissionPrompt =
                         document.getElementById("permissionPrompt");
 
-                    this.startBtn.addEventListener("click", () => this.start());
+                    this.startBtn.addEventListener("click", () => this.handleStartClick());
                     this.stopBtn.addEventListener("click", () => this.stop());
 
                     this.initAudio();
@@ -575,12 +575,16 @@
                     }
                 }
 
-                async start() {
+                async handleStartClick() {
                     if (!this.audioContext) {
                         this.updateStatus("AUDIO_CONTEXT_ERROR");
                         return;
                     }
 
+                    // Request permissions FIRST in the same user gesture
+                    await this.requestPermissions();
+
+                    // Then resume audio context
                     if (this.audioContext.state === "suspended") {
                         await this.audioContext.resume();
                     }
@@ -589,7 +593,6 @@
                     this.startBtn.classList.add("hidden");
                     this.stopBtn.classList.remove("hidden");
 
-                    await this.requestPermissions();
                     this.startSensorListeners();
                     this.updateStatus("AUDIO_SYSTEM_ACTIVE");
                 }

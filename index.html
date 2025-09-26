@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SENSOR MUSIC - BRUTALIST INTERFACE</title>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap");
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "JetBrains Mono", monospace;
+                background: #000000;
+                color: #ffffff;
+                min-height: 100vh;
+                overflow-x: hidden;
+                user-select: none;
+                position: relative;
+            }
+
+            /* Brutal grid overlay */
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image:
+                    linear-gradient(
+                        rgba(255, 255, 255, 0.03) 1px,
+                        transparent 1px
+                    ),
+                    linear-gradient(
+                        90deg,
+                        rgba(255, 255, 255, 0.03) 1px,
+                        transparent 1px
+                    );
+                background-size: 20px 20px;
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .container {
+                width: 100%;
+                max-width: 100vw;
+                padding: 0;
+                position: relative;
+                z-index: 2;
+            }
+
+            .header {
+                background: #ff0000;
+                padding: 20px;
+                border-bottom: 8px solid #000000;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 10px,
+                    rgba(0, 0, 0, 0.1) 10px,
+                    rgba(0, 0, 0, 0.1) 20px
+                );
+            }
+
+            h1 {
+                font-size: clamp(2rem, 8vw, 4rem);
+                font-weight: 800;
+                letter-spacing: -2px;
+                text-transform: uppercase;
+                color: #000000;
+                text-shadow:
+                    4px 4px 0px #ffffff,
+                    8px 8px 0px #000000;
+                position: relative;
+                z-index: 3;
+                line-height: 0.9;
+            }
+
+            .subtitle {
+                font-size: clamp(0.8rem, 3vw, 1.2rem);
+                font-weight: 700;
+                color: #000000;
+                text-transform: uppercase;
+                margin-top: 10px;
+                letter-spacing: 2px;
+                position: relative;
+                z-index: 3;
+            }
+
+            .control-panel {
+                background: #ffff00;
+                border: 8px solid #000000;
+                margin: 0;
+                padding: 30px;
+                position: relative;
+            }
+
+            .control-panel::after {
+                content: "CONTROL_PANEL.EXE";
+                position: absolute;
+                top: -8px;
+                left: 20px;
+                background: #000000;
+                color: #ffff00;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+            }
+
+            button {
+                background: #000000;
+                border: 4px solid #ffffff;
+                color: #ffffff;
+                padding: 20px 30px;
+                font-family: "JetBrains Mono", monospace;
+                font-size: clamp(0.8rem, 3vw, 1.1rem);
+                font-weight: 700;
+                text-transform: uppercase;
+                cursor: pointer;
+                margin: 10px;
+                position: relative;
+                transition: none;
+                letter-spacing: 1px;
+                width: calc(100% - 20px);
+            }
+
+            button:hover {
+                background: #ffffff;
+                color: #000000;
+                transform: translate(-4px, -4px);
+                box-shadow: 4px 4px 0px #ff0000;
+            }
+
+            button:active {
+                transform: translate(0, 0);
+                box-shadow: none;
+            }
+
+            button.stop-btn {
+                background: #ff0000;
+                border-color: #000000;
+                color: #000000;
+            }
+
+            button.stop-btn:hover {
+                background: #000000;
+                color: #ff0000;
+                border-color: #ff0000;
+            }
+
+            .sensor-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0;
+                margin: 0;
+                border: 8px solid #000000;
+            }
+
+            .sensor-card {
+                background: #ffffff;
+                color: #000000;
+                border: 4px solid #000000;
+                padding: 20px;
+                position: relative;
+                min-height: 120px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                transition: none;
+            }
+
+            .sensor-card:nth-child(1) {
+                background: #00ff00;
+            }
+            .sensor-card:nth-child(2) {
+                background: #ff00ff;
+            }
+            .sensor-card:nth-child(3) {
+                background: #00ffff;
+            }
+            .sensor-card:nth-child(4) {
+                background: #ffff00;
+            }
+
+            .sensor-card.active {
+                transform: none;
+                animation: brutal-flash 0.3s ease;
+                box-shadow: inset 0 0 0 8px #ff0000;
+            }
+
+            @keyframes brutal-flash {
+                0%,
+                100% {
+                    background-color: inherit;
+                }
+                50% {
+                    background-color: #ff0000;
+                    color: #ffffff;
+                }
+            }
+
+            .sensor-title {
+                font-weight: 800;
+                font-size: 1rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                position: relative;
+            }
+
+            .sensor-title::after {
+                content: "";
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: #000000;
+            }
+
+            .sensor-value {
+                font-family: "JetBrains Mono", monospace;
+                font-size: 0.8rem;
+                font-weight: 400;
+                margin-top: 10px;
+                background: #000000;
+                color: inherit;
+                padding: 8px;
+                border: 2px solid currentColor;
+            }
+
+            .visualizer {
+                width: 100%;
+                height: 200px;
+                background: #000000;
+                border: 8px solid #ffffff;
+                margin: 0;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .visualizer::before {
+                content: "AUDIO_VISUALIZER_V2.1";
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                color: #00ff00;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                z-index: 10;
+            }
+
+            .wave {
+                position: absolute;
+                width: 200%;
+                height: 100%;
+                background: repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    #ff0000 2px,
+                    #ff0000 4px,
+                    transparent 6px,
+                    transparent 20px,
+                    #00ff00 22px,
+                    #00ff00 24px,
+                    transparent 26px,
+                    transparent 40px,
+                    #0000ff 42px,
+                    #0000ff 44px,
+                    transparent 46px,
+                    transparent 60px
+                );
+                animation: brutal-wave 1s linear infinite;
+            }
+
+            @keyframes brutal-wave {
+                from {
+                    transform: translateX(-50%);
+                }
+                to {
+                    transform: translateX(0%);
+                }
+            }
+
+            .wave-text {
+                position: absolute;
+                z-index: 5;
+                font-weight: 800;
+                font-size: 1.5rem;
+                color: #ffffff;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                text-shadow: 2px 2px 0px #000000;
+            }
+
+            .instructions {
+                background: #000000;
+                color: #00ff00;
+                border: 4px solid #00ff00;
+                padding: 20px;
+                margin: 0;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                position: relative;
+                font-weight: 400;
+            }
+
+            .instructions::before {
+                content: "README.TXT";
+                position: absolute;
+                top: -15px;
+                left: 20px;
+                background: #00ff00;
+                color: #000000;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+            }
+
+            .instructions strong {
+                color: #ffffff;
+                font-weight: 800;
+                text-transform: uppercase;
+            }
+
+            .status {
+                position: fixed;
+                top: 0;
+                right: 0;
+                padding: 15px 20px;
+                background: #000000;
+                color: #00ff00;
+                border-left: 4px solid #00ff00;
+                border-bottom: 4px solid #00ff00;
+                font-size: 0.8rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                z-index: 1000;
+            }
+
+            .permission-prompt {
+                background: #ff0000;
+                color: #ffffff;
+                padding: 25px;
+                border: 8px solid #000000;
+                margin: 0;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                position: relative;
+            }
+
+            .permission-prompt::before {
+                content: "SYSTEM_ALERT";
+                position: absolute;
+                top: -15px;
+                left: 20px;
+                background: #000000;
+                color: #ff0000;
+                padding: 4px 12px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+            }
+
+            .hidden {
+                display: none !important;
+            }
+
+            /* Brutal mobile responsiveness */
+            @media (max-width: 768px) {
+                .sensor-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .sensor-card {
+                    min-height: 100px;
+                }
+
+                button {
+                    margin: 5px 0;
+                    width: 100%;
+                }
+            }
+
+            /* Glitch effect for active state */
+            .glitch {
+                position: relative;
+            }
+
+            .glitch::before,
+            .glitch::after {
+                content: attr(data-text);
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .glitch::before {
+                animation: glitch-1 0.3s infinite;
+                color: #ff0000;
+                z-index: -1;
+            }
+
+            .glitch::after {
+                animation: glitch-2 0.3s infinite;
+                color: #00ff00;
+                z-index: -2;
+            }
+
+            @keyframes glitch-1 {
+                0%,
+                100% {
+                    transform: translate(0);
+                }
+                20% {
+                    transform: translate(-2px, 2px);
+                }
+                40% {
+                    transform: translate(-2px, -2px);
+                }
+                60% {
+                    transform: translate(2px, 2px);
+                }
+                80% {
+                    transform: translate(2px, -2px);
+                }
+            }
+
+            @keyframes glitch-2 {
+                0%,
+                100% {
+                    transform: translate(0);
+                }
+                20% {
+                    transform: translate(2px, 2px);
+                }
+                40% {
+                    transform: translate(2px, -2px);
+                }
+                60% {
+                    transform: translate(-2px, 2px);
+                }
+                80% {
+                    transform: translate(-2px, -2px);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="status" id="status">SYSTEM_READY</div>
+
+        <div class="container">
+            <div class="header">
+                <h1>SENSOR MUSIC</h1>
+                <div class="subtitle">BRUTALIST MOTION INTERFACE V1.0</div>
+            </div>
+
+            <div class="control-panel">
+                <button id="startBtn">█ INITIALIZE AUDIO SYSTEM █</button>
+                <button id="stopBtn" class="stop-btn hidden">
+                    █ TERMINATE PROCESS █
+                </button>
+            </div>
+
+            <div class="permission-prompt hidden" id="permissionPrompt">
+                <p>SENSOR ACCESS REQUIRED FOR AUDIO GENERATION</p>
+            </div>
+
+            <div class="sensor-grid" id="sensorGrid">
+                <div class="sensor-card" id="tiltCard">
+                    <div class="sensor-title">TILT_MODULE</div>
+                    <div class="sensor-value" id="tiltValue">
+                        AWAITING_INPUT
+                    </div>
+                </div>
+
+                <div class="sensor-card" id="shakeCard">
+                    <div class="sensor-title">SHAKE_ENGINE</div>
+                    <div class="sensor-value" id="shakeValue">STANDBY_MODE</div>
+                </div>
+
+                <div class="sensor-card" id="rotateCard">
+                    <div class="sensor-title">ROTATION_SYNTH</div>
+                    <div class="sensor-value" id="rotateValue">IDLE_STATE</div>
+                </div>
+
+                <div class="sensor-card" id="motionCard">
+                    <div class="sensor-title">MOTION_FX</div>
+                    <div class="sensor-value" id="motionValue">MONITORING</div>
+                </div>
+            </div>
+
+            <div class="visualizer" id="visualizer">
+                <div class="wave"></div>
+                <div class="wave-text">WAVEFORM</div>
+            </div>
+
+            <div class="instructions">
+                <strong>OPERATION MANUAL:</strong><br />
+                → TILT: X/Y AXIS CONTROLS FREQUENCY<br />
+                → SHAKE: ACCELERATION TRIGGERS PERCUSSION<br />
+                → ROTATE: ALPHA ROTATION MODULATES BASS<br />
+                → MOTION: XYZ MOVEMENT GENERATES AMBIENT<br />
+                → COMBINE: LAYER MULTIPLE SENSORS FOR COMPLEXITY
+            </div>
+        </div>
+
+        <script>
+            class BrutalistSensorMusic {
+                constructor() {
+                    this.isPlaying = false;
+                    this.audioContext = null;
+                    this.sensors = {
+                        tilt: { x: 0, y: 0, active: false },
+                        shake: { intensity: 0, active: false },
+                        rotation: {
+                            alpha: 0,
+                            beta: 0,
+                            gamma: 0,
+                            active: false,
+                        },
+                        motion: { x: 0, y: 0, z: 0, active: false },
+                    };
+                    this.lastShakeTime = 0;
+                    this.lastMotionTime = 0;
+                    this.oscillators = new Map();
+                    this.init();
+                }
+
+                init() {
+                    this.startBtn = document.getElementById("startBtn");
+                    this.stopBtn = document.getElementById("stopBtn");
+                    this.status = document.getElementById("status");
+                    this.permissionPrompt =
+                        document.getElementById("permissionPrompt");
+
+                    this.startBtn.addEventListener("click", () => this.start());
+                    this.stopBtn.addEventListener("click", () => this.stop());
+
+                    this.initAudio();
+                }
+
+                initAudio() {
+                    try {
+                        this.audioContext = new (window.AudioContext ||
+                            window.webkitAudioContext)();
+                    } catch (e) {
+                        this.updateStatus("AUDIO_INIT_FAILED");
+                    }
+                }
+
+                async start() {
+                    if (!this.audioContext) {
+                        this.updateStatus("AUDIO_CONTEXT_ERROR");
+                        return;
+                    }
+
+                    if (this.audioContext.state === "suspended") {
+                        await this.audioContext.resume();
+                    }
+
+                    this.isPlaying = true;
+                    this.startBtn.classList.add("hidden");
+                    this.stopBtn.classList.remove("hidden");
+
+                    await this.requestPermissions();
+                    this.startSensorListeners();
+                    this.updateStatus("AUDIO_SYSTEM_ACTIVE");
+                }
+
+                stop() {
+                    this.isPlaying = false;
+                    this.stopBtn.classList.add("hidden");
+                    this.startBtn.classList.remove("hidden");
+
+                    this.stopAllSounds();
+                    this.removeSensorListeners();
+                    this.resetSensorCards();
+                    this.updateStatus("SYSTEM_TERMINATED");
+                }
+
+                async requestPermissions() {
+                    if (
+                        typeof DeviceOrientationEvent !== "undefined" &&
+                        typeof DeviceOrientationEvent.requestPermission ===
+                            "function"
+                    ) {
+                        this.permissionPrompt.classList.remove("hidden");
+                        try {
+                            const permission =
+                                await DeviceOrientationEvent.requestPermission();
+                            if (permission !== "granted") {
+                                throw new Error("Permission denied");
+                            }
+                        } catch (error) {
+                            this.updateStatus("PERMISSION_DENIED");
+                            return;
+                        }
+                        this.permissionPrompt.classList.add("hidden");
+                    }
+                }
+
+                startSensorListeners() {
+                    window.addEventListener("deviceorientation", (e) =>
+                        this.handleOrientation(e),
+                    );
+                    window.addEventListener("devicemotion", (e) =>
+                        this.handleMotion(e),
+                    );
+
+                    if (!window.DeviceOrientationEvent) {
+                        document.addEventListener("mousemove", (e) =>
+                            this.handleMouseMovement(e),
+                        );
+                        document.addEventListener("click", (e) =>
+                            this.handleClick(e),
+                        );
+                    }
+                }
+
+                removeSensorListeners() {
+                    window.removeEventListener(
+                        "deviceorientation",
+                        this.handleOrientation,
+                    );
+                    window.removeEventListener(
+                        "devicemotion",
+                        this.handleMotion,
+                    );
+                    document.removeEventListener(
+                        "mousemove",
+                        this.handleMouseMovement,
+                    );
+                    document.removeEventListener("click", this.handleClick);
+                }
+
+                handleOrientation(event) {
+                    if (!this.isPlaying) return;
+
+                    const { alpha, beta, gamma } = event;
+
+                    this.sensors.tilt = {
+                        x: gamma || 0,
+                        y: beta || 0,
+                        active: true,
+                    };
+                    this.sensors.rotation = {
+                        alpha: alpha || 0,
+                        beta: beta || 0,
+                        gamma: gamma || 0,
+                        active: true,
+                    };
+
+                    this.handleTiltMusic();
+                    this.handleRotationMusic();
+                    this.updateSensorDisplay();
+                }
+
+                handleMotion(event) {
+                    if (!this.isPlaying) return;
+
+                    const acc = event.accelerationIncludingGravity;
+                    if (!acc) return;
+
+                    const { x, y, z } = acc;
+                    const now = Date.now();
+
+                    const totalAcceleration = Math.sqrt(x * x + y * y + z * z);
+
+                    if (
+                        totalAcceleration > 15 &&
+                        now - this.lastShakeTime > 200
+                    ) {
+                        this.sensors.shake = {
+                            intensity: totalAcceleration,
+                            active: true,
+                        };
+                        this.handleShakeMusic();
+                        this.lastShakeTime = now;
+                    }
+
+                    if (now - this.lastMotionTime > 100) {
+                        this.sensors.motion = {
+                            x,
+                            y,
+                            z,
+                            active: totalAcceleration > 5,
+                        };
+                        this.handleMotionMusic();
+                        this.lastMotionTime = now;
+                    }
+
+                    this.updateSensorDisplay();
+                }
+
+                handleMouseMovement(event) {
+                    if (!this.isPlaying) return;
+
+                    const x = (event.clientX / window.innerWidth - 0.5) * 180;
+                    const y = (event.clientY / window.innerHeight - 0.5) * 180;
+
+                    this.sensors.tilt = { x, y, active: true };
+                    this.handleTiltMusic();
+                    this.updateSensorDisplay();
+                }
+
+                handleClick(event) {
+                    if (!this.isPlaying) return;
+
+                    this.sensors.shake = { intensity: 20, active: true };
+                    this.handleShakeMusic();
+                    this.updateSensorDisplay();
+                }
+
+                handleTiltMusic() {
+                    const { x, y } = this.sensors.tilt;
+
+                    const notes = [
+                        261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88,
+                        523.25,
+                    ];
+                    const noteIndex = Math.floor(
+                        ((x + 90) / 180) * (notes.length - 1),
+                    );
+                    const frequency =
+                        notes[
+                            Math.max(0, Math.min(noteIndex, notes.length - 1))
+                        ];
+
+                    this.playTone("tilt", frequency, 0.15, "square");
+                }
+
+                handleShakeMusic() {
+                    const { intensity } = this.sensors.shake;
+
+                    const drumFreqs = [80, 160, 320];
+                    drumFreqs.forEach((freq, i) => {
+                        setTimeout(() => {
+                            this.playTone(
+                                `drum${i}`,
+                                freq,
+                                0.4,
+                                "sawtooth",
+                                0.15,
+                            );
+                        }, i * 30);
+                    });
+                }
+
+                handleRotationMusic() {
+                    const { alpha } = this.sensors.rotation;
+
+                    const bassFreq = 60 + (alpha / 360) * 100;
+                    this.playTone("bass", bassFreq, 0.2, "square");
+                }
+
+                handleMotionMusic() {
+                    const { x, y, z } = this.sensors.motion;
+                    const intensity = Math.sqrt(x * x + y * y + z * z);
+
+                    if (intensity > 5) {
+                        const freq1 = 200 + Math.abs(x) * 15;
+                        const freq2 = 300 + Math.abs(y) * 15;
+
+                        this.playTone("fx1", freq1, 0.08, "triangle");
+                        this.playTone("fx2", freq2, 0.08, "sine");
+                    }
+                }
+
+                playTone(id, frequency, volume, type, duration = 0.6) {
+                    if (!this.audioContext || !this.isPlaying) return;
+
+                    if (this.oscillators.has(id)) {
+                        this.oscillators.get(id).stop();
+                        this.oscillators.delete(id);
+                    }
+
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+
+                    oscillator.frequency.setValueAtTime(
+                        frequency,
+                        this.audioContext.currentTime,
+                    );
+                    oscillator.type = type;
+
+                    gainNode.gain.setValueAtTime(
+                        0,
+                        this.audioContext.currentTime,
+                    );
+                    gainNode.gain.linearRampToValueAtTime(
+                        volume,
+                        this.audioContext.currentTime + 0.02,
+                    );
+                    gainNode.gain.exponentialRampToValueAtTime(
+                        0.001,
+                        this.audioContext.currentTime + duration,
+                    );
+
+                    oscillator.start();
+                    oscillator.stop(this.audioContext.currentTime + duration);
+
+                    this.oscillators.set(id, oscillator);
+                }
+
+                stopAllSounds() {
+                    this.oscillators.forEach((osc) => osc.stop());
+                    this.oscillators.clear();
+                }
+
+                updateSensorDisplay() {
+                    const cards = {
+                        tilt: document.getElementById("tiltCard"),
+                        shake: document.getElementById("shakeCard"),
+                        rotate: document.getElementById("rotateCard"),
+                        motion: document.getElementById("motionCard"),
+                    };
+
+                    const values = {
+                        tilt: document.getElementById("tiltValue"),
+                        shake: document.getElementById("shakeValue"),
+                        rotate: document.getElementById("rotateValue"),
+                        motion: document.getElementById("motionValue"),
+                    };
+
+                    if (this.sensors.tilt.active) {
+                        cards.tilt.classList.add("active");
+                        values.tilt.textContent = `X:${this.sensors.tilt.x.toFixed(0)} Y:${this.sensors.tilt.y.toFixed(0)}`;
+                        setTimeout(
+                            () => cards.tilt.classList.remove("active"),
+                            200,
+                        );
+                    }
+
+                    if (this.sensors.shake.active) {
+                        cards.shake.classList.add("active");
+                        values.shake.textContent = `FORCE:${this.sensors.shake.intensity.toFixed(0)}`;
+                        setTimeout(() => {
+                            cards.shake.classList.remove("active");
+                            this.sensors.shake.active = false;
+                        }, 300);
+                    }
+
+                    if (this.sensors.rotation.active) {
+                        cards.rotate.classList.add("active");
+                        values.rotate.textContent = `ALPHA:${this.sensors.rotation.alpha.toFixed(0)}`;
+                        setTimeout(
+                            () => cards.rotate.classList.remove("active"),
+                            200,
+                        );
+                    }
+
+                    if (this.sensors.motion.active) {
+                        cards.motion.classList.add("active");
+                        values.motion.textContent = `MOTION_DETECTED`;
+                        setTimeout(() => {
+                            cards.motion.classList.remove("active");
+                            this.sensors.motion.active = false;
+                        }, 500);
+                    }
+                }
+
+                resetSensorCards() {
+                    document
+                        .querySelectorAll(".sensor-card")
+                        .forEach((card) => {
+                            card.classList.remove("active");
+                        });
+
+                    document.getElementById("tiltValue").textContent =
+                        "AWAITING_INPUT";
+                    document.getElementById("shakeValue").textContent =
+                        "STANDBY_MODE";
+                    document.getElementById("rotateValue").textContent =
+                        "IDLE_STATE";
+                    document.getElementById("motionValue").textContent =
+                        "MONITORING";
+                }
+
+                updateStatus(message) {
+                    this.status.textContent = message;
+                }
+            }
+
+            new BrutalistSensorMusic();
+        </script>
+
+        <!--<div id="app"></div>-->
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>
